@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Tidemark turns the traces of your workday into worklogs: for Jira, a spreadsheet or a message. Local-first, in development.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2313296a'/%3E%3Cpath d='M10 26 C18 21 25 30 33 25 S47 21 54 25' fill='none' stroke='%23f6c560' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M0 42 C10 36 21 47 32 41 S53 35 64 41 V50 A14 14 0 0 1 50 64 H14 A14 14 0 0 1 0 50 Z' fill='%233f74ec'/%3E%3C/svg%3E">
+<title>Tidemark</title>
+<script>
+  (function () {
+    try {
+      var pref = localStorage.getItem("tidemark-theme");
+      if (pref === "light" || pref === "dark") document.documentElement.setAttribute("data-theme", pref);
+    } catch (e) {}
+  })();
+</script>
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+  /* Tidemark's colours: the logo's night navy, sea blue and the gold of the tide line.
+     Gold marks only the tide line and the in-development note. */
+  :root {
+    --bg: #f3f6fb;           /* foam */
+    --surface: #ffffff;
+    --text: #13203f;         /* deep water ink */
+    --muted: #55607a;
+    --line: #dbe2ee;
+    --primary: #2f5bd3;      /* sea */
+    --primary-text: #ffffff;
+    --sea: #3f74ec;
+    --sea-back: #a9c3fa;
+    --gold: #d99a1e;         /* the tide line, deepened to read on light ground */
+    --gold-soft: #fbedc9;
+    --font: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1838;         /* night navy */
+      --surface: #13234a;
+      --text: #e9eefb;
+      --muted: #9aa8c7;
+      --line: #23366a;
+      --primary: #7c9cff;
+      --primary-text: #0c1838;
+      --sea: #2f5bd3;
+      --sea-back: #1c3a8f;
+      --gold: #f6c560;
+      --gold-soft: #3a3320;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1838;
+    --surface: #13234a;
+    --text: #e9eefb;
+    --muted: #9aa8c7;
+    --line: #23366a;
+    --primary: #7c9cff;
+    --primary-text: #0c1838;
+    --sea: #2f5bd3;
+    --sea-back: #1c3a8f;
+    --gold: #f6c560;
+    --gold-soft: #3a3320;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 400 17px/1.6 var(--font);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 6px; }
+  code, .mono { font-family: var(--mono); font-size: 0.88em; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 24px; }
+
+  /* header */
+  header { position: sticky; top: 0; z-index: 10; background: color-mix(in oklab, var(--bg) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+  .bar { display: flex; align-items: center; gap: 28px; height: 56px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; text-decoration: none; letter-spacing: -0.01em; }
+  .bar nav { display: flex; gap: 22px; margin-left: auto; font-size: 15px; color: var(--muted); }
+  .bar nav a { text-decoration: none; }
+  .bar nav a:hover { color: var(--text); }
+  .theme { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--muted); cursor: pointer; }
+  .theme:hover { color: var(--text); }
+
+  /* hero */
+  .hero { padding-block: 72px 24px; }
+  .status { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 28px; padding: 4px 12px 4px 10px; border-radius: 999px; background: var(--gold-soft); color: var(--text); font-size: 14px; font-weight: 500; }
+  .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+  h1 { margin: 0; max-width: 15ch; font-size: clamp(2.6rem, 6.4vw, 4.6rem); line-height: 1.02; font-weight: 600; letter-spacing: -0.035em; }
+  .lede { max-width: 58ch; margin: 24px 0 0; font-size: 20px; line-height: 1.55; color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 22px; margin-top: 32px; }
+  .btn { display: inline-flex; align-items: center; height: 44px; padding: 0 20px; border-radius: 10px; background: var(--primary); color: var(--primary-text); font-weight: 600; font-size: 16px; text-decoration: none; }
+  .btn:hover { filter: brightness(1.08); }
+  .actions .note { color: var(--muted); font-size: 15px; }
+
+  /* the tide chart */
+  .chart { margin: 28px 0 0; overflow-x: auto; }
+  .tide { display: block; width: 100%; min-width: 760px; height: auto; }
+  .tide .sea { fill: var(--sea); }
+  .tide .sea-back { fill: var(--sea-back); }
+  .tide .hour { fill: var(--muted); font: 500 13px var(--mono); text-anchor: middle; }
+  .tide .mark { stroke: var(--gold); stroke-width: 7; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .tide .mark.skipped { stroke: var(--muted); stroke-width: 3; stroke-dasharray: 0.08 0.06; opacity: 0.7; }
+  .tide .tick { stroke: var(--gold); stroke-width: 2; }
+  .tide .key { fill: var(--text); font: 600 15px var(--mono); text-anchor: middle; }
+  .tide .key.label { font-family: var(--font); font-size: 16px; }
+  .tide .key.muted { fill: var(--muted); font-weight: 500; }
+  .tide .dur { fill: var(--muted); font: 500 13px var(--mono); text-anchor: middle; }
+  .chart figcaption { margin-top: 10px; color: var(--muted); font-size: 15px; }
+
+  /* The one moment of motion: the day's marks are drawn left to right. */
+  @media (prefers-reduced-motion: no-preference) {
+    .tide .session .mark:not(.skipped) { stroke-dashoffset: 1; animation: draw 0.7s cubic-bezier(.3,.7,.3,1) forwards; animation-delay: calc(var(--i) * 0.22s + 0.3s); }
+    .tide .session text, .tide .session .tick, .tide .session .skipped { opacity: 0; animation: show 0.4s ease-out forwards; animation-delay: calc(var(--i) * 0.22s + 0.55s); }
+  }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes show { to { opacity: 1; } }
+  .tide .session .skipped { animation-name: show-skipped; }
+  @keyframes show-skipped { to { opacity: 0.7; } }
+
+  /* sections */
+  section { padding: 88px 0 0; }
+  h2 { margin: 0 0 12px; font-size: clamp(1.7rem, 3.2vw, 2.3rem); line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; max-width: 24ch; }
+  .intro { margin: 0 0 40px; max-width: 60ch; color: var(--muted); font-size: 18px; }
+  p { margin: 0; }
+
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; counter-reset: step; }
+  .steps li { counter-increment: step; padding-top: 18px; border-top: 2px solid var(--line); }
+  .steps li::before { content: counter(step); display: block; margin-bottom: 10px; font: 600 15px var(--mono); color: var(--primary); }
+  .steps h3, .features h3 { margin: 0 0 8px; font-size: 19px; font-weight: 600; letter-spacing: -0.01em; }
+  .steps p, .features p { color: var(--muted); }
+
+  .features { display: grid; grid-template-columns: repeat(2, 1fr); gap: 34px 56px; margin: 0; }
+  .features div { max-width: 46ch; }
+
+  .private { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: start; }
+  .private ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+  .private li { padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--muted); font-size: 16px; }
+  .private li strong { display: block; color: var(--text); font-weight: 600; }
+
+  .downloads { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .platform { padding: 20px; border: 1px dashed var(--line); border-radius: 12px; }
+  .platform h3 { margin: 0 0 4px; font-size: 18px; font-weight: 600; }
+  .platform p { color: var(--muted); font-size: 15px; }
+
+  footer { margin-top: 104px; padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
+
+  @media (max-width: 760px) {
+    body { font-size: 16px; }
+    .bar nav { display: none; }
+    .theme { margin-left: auto; }
+    .hero { padding-block-start: 48px; }
+    .lede { font-size: 18px; }
+    .steps, .features, .private, .downloads { grid-template-columns: 1fr; gap: 28px; }
+    section { padding-top: 64px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap bar">
+    <a class="brand" href="#top" aria-label="Tidemark, to the top">
+      <svg width="26" height="26" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="14" fill="#13296a"/>
+        <path d="M10 26 C18 21 25 30 33 25 S47 21 54 25" fill="none" stroke="#f6c560" stroke-width="5" stroke-linecap="round"/>
+        <path d="M0 42 C10 36 21 47 32 41 S53 35 64 41 V50 A14 14 0 0 1 50 64 H14 A14 14 0 0 1 0 50 Z" fill="#3f74ec"/>
+      </svg>
+      Tidemark
+    </a>
+    <nav aria-label="Sections">
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#download">Download</a>
+    </nav>
+    <button class="theme" id="theme" type="button" aria-label="Switch between light and dark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <p class="status">In development: nothing to download yet</p>
+    <h1>Your workday leaves a mark. Tidemark writes it down.</h1>
+    <p class="lede">Tidemark runs on your computer and follows what you work on. At the end of
+      the day it hands you the day's worklogs to check: which ticket, from when to when, what
+      you did. Fix what is wrong, then send them to Jira or copy them into your spreadsheet.</p>
+    <div class="actions">
+      <a class="btn" href="https://github.com/burak-kayaa/tidemark-site" rel="noopener">Follow on GitHub</a>
+      <span class="note">For Linux first, then macOS and Windows.</span>
+    </div>
+    <figure class="chart">
+        <svg class="tide" viewBox="0 0 1000 280" role="img" aria-labelledby="tide-title tide-desc">
+          <title id="tide-title">A workday as Tidemark sees it</title>
+          <desc id="tide-desc">From 09:00 to 18:00: PAY-101 for 50 minutes, PAY-102 for 45 minutes, Weekly sync for 30 minutes, PAY-103 for 1 hour 40 minutes, a skipped 20 minutes on youtube.com, and Canya for 1 hour 55 minutes.</desc>
+          <path class="sea sea-back" d="M0 182 C120 170 240 194 360 182 S600 168 720 182 S900 194 1000 180 V232 H0 Z"/>
+          <path class="sea" d="M0 196 C140 186 260 206 400 194 S640 184 780 196 S930 204 1000 194 V232 H0 Z"/>
+          <text class="hour" x="40.0" y="262">09:00</text>
+          <text class="hour" x="142.2" y="262">10:00</text>
+          <text class="hour" x="244.4" y="262">11:00</text>
+          <text class="hour" x="346.7" y="262">12:00</text>
+          <text class="hour" x="448.9" y="262">13:00</text>
+          <text class="hour" x="551.1" y="262">14:00</text>
+          <text class="hour" x="653.3" y="262">15:00</text>
+          <text class="hour" x="755.6" y="262">16:00</text>
+          <text class="hour" x="857.8" y="262">17:00</text>
+          <text class="hour" x="960.0" y="262">18:00</text>
+          <g class="session" style="--i:0">
+            <line class="mark" x1="40.0" y1="118" x2="125.2" y2="118" pathLength="1"/>
+            <line class="tick" x1="40.0" y1="110" x2="40.0" y2="126"/>
+            <line class="tick" x1="125.2" y1="110" x2="125.2" y2="126"/>
+            <text class="key" x="82.6" y="94">PAY-101</text>
+            <text class="dur" x="82.6" y="148">50m</text>
+          </g>
+          <g class="session" style="--i:1">
+            <line class="mark" x1="218.9" y1="118" x2="295.6" y2="118" pathLength="1"/>
+            <line class="tick" x1="218.9" y1="110" x2="218.9" y2="126"/>
+            <line class="tick" x1="295.6" y1="110" x2="295.6" y2="126"/>
+            <text class="key" x="257.2" y="94">PAY-102</text>
+            <text class="dur" x="257.2" y="148">45m</text>
+          </g>
+          <g class="session" style="--i:2">
+            <line class="mark" x1="346.7" y1="118" x2="397.8" y2="118" pathLength="1"/>
+            <line class="tick" x1="346.7" y1="110" x2="346.7" y2="126"/>
+            <line class="tick" x1="397.8" y1="110" x2="397.8" y2="126"/>
+            <text class="key label" x="372.2" y="94">Weekly sync</text>
+            <text class="dur" x="372.2" y="148">30m</text>
+          </g>
+          <g class="session" style="--i:3">
+            <line class="mark" x1="500.0" y1="118" x2="670.4" y2="118" pathLength="1"/>
+            <line class="tick" x1="500.0" y1="110" x2="500.0" y2="126"/>
+            <line class="tick" x1="670.4" y1="110" x2="670.4" y2="126"/>
+            <text class="key" x="585.2" y="94">PAY-103</text>
+            <text class="dur" x="585.2" y="148">1h 40m</text>
+          </g>
+          <g class="session" style="--i:4">
+            <line class="mark skipped" x1="678.9" y1="118" x2="713.0" y2="118" pathLength="1"/>
+            <text class="key muted" x="696.0" y="94">youtube.com</text>
+            <text class="dur" x="696.0" y="148">skipped</text>
+          </g>
+          <g class="session" style="--i:5">
+            <line class="mark" x1="730.0" y1="118" x2="925.9" y2="118" pathLength="1"/>
+            <line class="tick" x1="730.0" y1="110" x2="730.0" y2="126"/>
+            <line class="tick" x1="925.9" y1="110" x2="925.9" y2="126"/>
+            <text class="key label" x="828.0" y="94">Canya</text>
+            <text class="dur" x="828.0" y="148">1h 55m</text>
+          </g>
+        </svg>
+      <figcaption>A day as Tidemark sees it. Time with a ticket or label becomes a worklog; time you skip stays out.</figcaption>
+    </figure>
+  </div>
+
+  <section id="how">
+    <div class="wrap">
+      <h2>Three steps, and the first is your normal day</h2>
+      <p class="intro">You don't start a timer or remember to switch tasks. Tidemark reads the
+        traces your work already leaves.</p>
+      <ol class="steps">
+        <li>
+          <h3>Work as usual</h3>
+          <p>Your editor, terminal, browser and calls are recorded on your machine, and the
+            day is split into sessions wherever you took a break.</p>
+        </li>
+        <li>
+          <h3>Check the suggestions</h3>
+          <p>Each session comes with the ticket or label it most likely belongs to, and how
+            sure Tidemark is. Accept it, correct it or skip it. It learns from your choices.</p>
+        </li>
+        <li>
+          <h3>Log it</h3>
+          <p>One worklog per ticket and day, with a start, an end and a description. Publish
+            it to Jira, or copy a table or a message for anywhere else.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="what">
+    <div class="wrap">
+      <h2>Made for days that don't fit a timer</h2>
+      <p class="intro">Real days switch between tickets, meetings and things nobody tracks.</p>
+      <div class="features">
+        <div>
+          <h3>Finds the ticket on its own</h3>
+          <p>Keys like <code>PAY-123</code> in branch names, window titles and URLs are picked up.
+            Once a repository, site or server keeps going to the same work, Tidemark offers to
+            remember it.</p>
+        </div>
+        <div>
+          <h3>Work without a ticket</h3>
+          <p>Not everything lives in Jira. Log time to a label instead: a client, a meeting, a
+            weekly report.</p>
+        </div>
+        <div>
+          <h3>A day you can correct</h3>
+          <p>Add time by hand, change when a worklog starts and ends, round to the half or whole
+            hour, and write the description yourself.</p>
+        </div>
+        <div>
+          <h3>Any range, in any format</h3>
+          <p>A summary of a day, a week or any two dates: as a table that pastes into a
+            spreadsheet, as CSV, or as text for a message.</p>
+        </div>
+        <div>
+          <h3>In your tray</h3>
+          <p>A small icon shows how much is left to review and opens the app in its own
+            window.</p>
+        </div>
+        <div>
+          <h3>Descriptions, if you want them</h3>
+          <p>Each worklog gets a one-line description. Claude can write better ones on request;
+            you see exactly what would be sent before anything is.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="privacy">
+    <div class="wrap private">
+      <div>
+        <h2>Your activity stays on your computer</h2>
+        <p class="intro">What you worked on all day is personal. Tidemark keeps it in one file
+          on your disk and runs without an account.</p>
+      </div>
+      <ul>
+        <li><strong>Local only</strong>The app runs on your machine and only answers on <code>127.0.0.1</code>.</li>
+        <li><strong>Nothing leaves without you</strong>Jira gets the worklogs you publish. Claude gets a description request only when you ask, after a preview.</li>
+        <li><strong>Private windows stay private</strong>Incognito tabs are never recorded, and apps and sites you exclude are stored only as "private".</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="download">
+    <div class="wrap">
+      <h2>Download</h2>
+      <p class="intro">There is no build to download yet. When there is, it will be here.</p>
+      <div class="downloads">
+        <div class="platform"><h3>Linux</h3><p>First to come</p></div>
+        <div class="platform"><h3>macOS</h3><p>Later</p></div>
+        <div class="platform"><h3>Windows</h3><p>Later</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Tidemark is made by <a href="https://burkaya.com">Burak Kaya</a>.</span>
+    <span>Also by me: <a href="https://canya.burkaya.com">Canya</a>, a desktop app for system diagrams.</span>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var root = document.documentElement;
+    document.getElementById("theme").addEventListener("click", function () {
+      var dark = root.getAttribute("data-theme")
+        ? root.getAttribute("data-theme") === "dark"
+        : matchMedia("(prefers-color-scheme: dark)").matches;
+      var next = dark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      try { localStorage.setItem("tidemark-theme", next); } catch (e) {}
+    });
+  })();
+</script>
+</body>
+</html>
