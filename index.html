@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="description" content="Tidemark turns the traces of your workday into worklogs: for Jira, a spreadsheet or a message. Local-first, in development.">
+<meta name="description" content="Tidemark turns the traces of your workday into worklogs: for Jira, a spreadsheet or a message. Local-first, for Windows, macOS and Linux.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2313296a'/%3E%3Cpath d='M10 26 C18 21 25 30 33 25 S47 21 54 25' fill='none' stroke='%23f6c560' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='M0 42 C10 36 21 47 32 41 S53 35 64 41 V50 A14 14 0 0 1 50 64 H14 A14 14 0 0 1 0 50 Z' fill='%233f74ec'/%3E%3C/svg%3E">
 <title>Tidemark</title>
 <script>
@@ -205,6 +205,12 @@
   .platforms { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
   .platforms li { padding: 8px 14px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 15px; }
   .platforms li strong { color: var(--text); font-weight: 600; margin-right: 6px; }
+  .downloads li { padding: 0; border-style: solid; }
+  .downloads a { display: block; padding: 10px 16px; color: var(--muted); text-decoration: none; }
+  .downloads a:hover { color: var(--text); }
+  .downloads li:hover { border-color: var(--gold); }
+  .fine { margin: 18px 0 0; max-width: 70ch; color: var(--muted); font-size: 14.5px; line-height: 1.6; }
+  .fine code { font-size: 13px; word-break: break-all; }
 
   footer { padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: 15px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; }
@@ -251,14 +257,14 @@
 
 <main id="top">
   <div class="wrap hero">
-    <p class="status rise" style="--d:0ms">In development: nothing to download yet</p>
+    <p class="status rise" style="--d:0ms">Version 0.1.0 is out</p>
     <h1 class="rise" style="--d:90ms">Your workday leaves a mark. Tidemark writes it down.</h1>
     <p class="lede rise" style="--d:180ms">Tidemark runs on your computer and follows what you work on. At the end of
       the day it hands you the day's worklogs to check: which ticket, from when to when, what
       you did. Fix what is wrong, then send them to Jira or write them into your spreadsheet.</p>
     <div class="actions rise" style="--d:270ms">
-      <a class="btn" href="https://github.com/burak-kayaa/tidemark-site" rel="noopener">Follow on GitHub</a>
-      <span class="note">For Linux first, then macOS and Windows.</span>
+      <a class="btn" href="#download">Download</a>
+      <span class="note">For Windows and Apple Silicon Macs; on Linux with uv.</span>
     </div>
     <figure class="chart rise" style="--d:380ms">
         <svg class="tide" viewBox="0 0 1000 280" role="img" aria-labelledby="tide-title tide-desc">
@@ -425,7 +431,7 @@
       </div>
       <ul>
         <li><strong>Local only</strong>The app runs on your machine and only answers on <code>127.0.0.1</code>.</li>
-        <li><strong>Nothing leaves without you</strong>Jira and your sheet get the worklogs you send. Claude sees a description request only after a preview.</li>
+        <li><strong>Nothing leaves without you</strong>Jira and your sheet get the worklogs you send. Claude sees your work only if you connect it, and looking for a new version asks for a number, nothing more.</li>
         <li><strong>Private stays private</strong>Incognito tabs are never recorded; apps and sites you exclude are kept only as "private".</li>
         <li><strong>Gone when you say so</strong>Old activity is deleted after 90 days, and any hour of a day can be forgotten at once.</li>
       </ul>
@@ -436,14 +442,19 @@
     <div class="wrap soon">
       <div>
         <h2>Download</h2>
-        <p class="intro">There is no build to download yet. When there is, it will be here.</p>
-        <ul class="platforms">
-          <li><strong>Linux</strong>first</li>
-          <li><strong>macOS</strong>later</li>
-          <li><strong>Windows</strong>later</li>
+        <p class="intro">Version 0.1.0. Install <a href="https://activitywatch.net/downloads/" rel="noopener">ActivityWatch</a>
+          first, with its browser extension: Tidemark reads what it records. Tidemark's welcome guide
+          then sets up the rest.</p>
+        <ul class="platforms downloads">
+          <li><a href="https://github.com/burak-kayaa/tidemark-site/releases/download/v0.1.0/Tidemark-0.1.0-Setup.exe"><strong>Windows</strong>Installer, 144 MB</a></li>
+          <li><a href="https://github.com/burak-kayaa/tidemark-site/releases/download/v0.1.0/Tidemark-0.1.0-macOS-arm64.dmg"><strong>macOS</strong>Apple Silicon, 231 MB</a></li>
+          <li><a href="https://github.com/burak-kayaa/tidemark-site/releases/download/v0.1.0/tidemark-0.1.0-py3-none-any.whl"><strong>Linux</strong>with uv</a></li>
         </ul>
+        <p class="fine">Windows may not know the installer yet: choose "More info", then "Run anyway".
+          On Linux and Intel Macs: <code>uv tool install "tidemark[desktop] @ https://github.com/burak-kayaa/tidemark-site/releases/download/v0.1.0/tidemark-0.1.0-py3-none-any.whl"</code>,
+          then <code>worklog desktop</code>.</p>
       </div>
-      <a class="btn" href="https://github.com/burak-kayaa/tidemark-site" rel="noopener">Follow on GitHub</a>
+      <a class="btn" href="https://github.com/burak-kayaa/tidemark-site/releases" rel="noopener">All releases</a>
     </div>
   </section>
 </main>
